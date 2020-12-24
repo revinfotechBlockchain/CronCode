@@ -18,6 +18,7 @@ const BTCDatabase = mongoose.model('BTCDatabase');
 const UserAddressAndStakeID = mongoose.model('UserAddressAndStakeID');
 const TransformTokens = mongoose.model('TransformTokens');
 const referalManager = mongoose.model('ReferalManager');
+const NexDatabase = mongoose.model('NexDatabase');
 
 //Modules exporter
 
@@ -35,15 +36,33 @@ cron.schedule('30 * * * * *', async () => {
                             await newContract.methods.getActiveStakesById(id).call().then(async out4 => {
                                 if (out4.toString() != '', out3.toString() != '', out2.toString() != '', out1.toString() != '', out.toString() != '')
                                     var obj = { StakeId: id, StakerAddress: out4.toString(), StakingStartTime: out2.toString(), StakingEndTime: out3.toString(), StakerTokens: (out1.toString() / 1000000000000000000).toFixed(6), TokenTransactionstatus: out.toString(), Amount: 0, Interest: 0, BigPayDay: 0, Shares: 0 };
-                                await UserAddressAndStakeID.findOneAndUpdate({ StakeId: id }, obj, { new: true, upsert: true }, (err, doc) => {
-                                    if (!err) {
-                                        startUpdatesIndex = 1;
-                                        console.log("New Entry Added in Staker Corn")
+                                    //console.log("obj: ", obj.StakingStartTime, obj.StakingEndTime)
+                                    if( obj.StakingEndTime - obj.StakingStartTime ==31536000){
+                                        //console.log("here")
+                                        await NexDatabase.findOneAndUpdate({ StakeId: id }, obj, { new: true, upsert: true }, (err, doc) => {
+                                            if (!err) {
+                                                startUpdatesIndex = 1;
+                                                console.log("New Entry Added in performClaim Corn")
+                                            }
+                                            else {
+                                                console.log({ error: 'Error during Json insertion insertion performClaim : ' + err });
+                                            }
+                                        });
+
+                                    } else {
+                                        //console.log("mmhere")
+                                        await UserAddressAndStakeID.findOneAndUpdate({ StakeId: id }, obj, { new: true, upsert: true }, (err, doc) => {
+                                            if (!err) {
+                                                startUpdatesIndex = 1;
+                                                console.log("New Entry Added in Staker Corn")
+                                            }
+                                            else {
+                                                console.log({ error: 'Error during Json insertion insertion normal stake : ' + err });
+                                            }
+                                        });
+
                                     }
-                                    else {
-                                        console.log({ error: 'Error during Json insertion insertion : ' + err });
-                                    }
-                                });
+                                    
                             }).catch(err => {
                                 console.log(err);
                             });

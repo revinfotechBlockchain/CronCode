@@ -152,7 +152,7 @@ cron.schedule('0 0 0 * * *', async () => {
                 indexDate = 0;
             }
             var newContract = await new web3.eth.Contract(abi, contractAddress);
-            await newContract && newContract.methods.getpurchaseableTokensAddress().call().then(async out3 => {
+            await newContract && newContract.methods.getowner().call().then(async out3 => {
                 await newContract.methods.balanceOf(out3.toString()).call().then(async out4 => {
                     await newContract.methods.getTotalETH().call().then(async out1 => {
                         await newContract.methods.getPriceToken().call().then(async out2 => {
@@ -592,7 +592,7 @@ module.exports = {
             var newContract = await new web3.eth.Contract(abi, contractAddress);
             await newContract && newContract.methods.getMyPurchasedTokens(req.query.address).call().then(async output => {
                 console.log(output)
-                await newContract.methods.getpurchaseableTokensAddress().call().then(async out2 => {
+                await newContract.methods.getowner().call().then(async out2 => {
                     console.log(out2)
                     await newContract.methods.balanceOf(out2.toString()).call().then(async out3 => {
                         console.log(out3)

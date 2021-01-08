@@ -34,11 +34,15 @@ cron.schedule('30 * * * * *', async () => {
                     await newContract.methods.getStakingStartTimeById(id).call().then(async out2 => {
                         await newContract.methods.getStakingEndTimeById(id).call().then(async out3 => {
                             await newContract.methods.getActiveStakesById(id).call().then(async out4 => {
-                                if (out4.toString() != '', out3.toString() != '', out2.toString() != '', out1.toString() != '', out.toString() != '')
-                                    var obj = { StakeId: id, StakerAddress: out4.toString(), StakingStartTime: out2.toString(), StakingEndTime: out3.toString(), StakerTokens: (out1.toString() / 1000000000000000000).toFixed(6), TokenTransactionstatus: out.toString(), Amount: 0, Interest: 0, BigPayDay: 0, Shares: 0 };
+                                await newContract.methods.calculateBigPayDayReward(out1.toString(), out3.toString() ).call().then(async out5 => {
+                                    await newContract.methods.getIsClaimById(id).call().then(async isClaimOutput => {
+                                if (out5.toString() != '', out4.toString() != '', out3.toString() != '', out2.toString() != '', out1.toString() != '', out.toString() != '')
+                                    var obj = { StakeId: id, StakerAddress: out4.toString(), StakingStartTime: out2.toString(), StakingEndTime: out3.toString(), StakerTokens: (out1.toString() / 1000000000000000000).toFixed(6), TokenTransactionstatus: out.toString(), Amount: 0, Interest: 0, BigPayDay: (out5.toString() / 1000000000000000000).toFixed(6), Shares: 0 };
                                     //console.log("obj: ", obj.StakingStartTime, obj.StakingEndTime)
-                                    if( obj.StakingEndTime - obj.StakingStartTime ==31536000){
+                                    if(isClaimOutput){
                                         //console.log("here")
+                                        var holdingBalance = await newContract.methods.checkHoldingBalance(out4).call();
+                                        obj.Shares=holdingBalance;
                                         await NexDatabase.findOneAndUpdate({ StakeId: id }, obj, { new: true, upsert: true }, (err, doc) => {
                                             if (!err) {
                                                 startUpdatesIndex = 1;
@@ -62,6 +66,12 @@ cron.schedule('30 * * * * *', async () => {
                                         });
 
                                     }
+                                }).catch(err => {
+                                    console.log(err);
+                                })
+                                }).catch(err => {
+                                    console.log(err);
+                                });
                                     
                             }).catch(err => {
                                 console.log(err);

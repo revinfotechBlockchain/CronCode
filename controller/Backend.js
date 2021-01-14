@@ -204,7 +204,7 @@ module.exports = {
     getTokenTransactionsByAddress: async (req, res) => {
         var returnData = [];
         if (req.query.address && !req.query.address == "") {
-            axios.get('http://api-ropsten.etherscan.io/api?module=account&action=tokentx&address=' + req.query.address + '&startblock=0&endblock=999999999&sort=asc&apikey=YourApiKeyToken').then(output => {
+            axios.get('http://api.etherscan.io/api?module=account&action=tokentx&address=' + req.query.address + '&startblock=0&endblock=999999999&sort=asc&apikey=YourApiKeyToken').then(output => {
                 // console.log(output.data)
                 var out = output.data.result;
                 // res.send(out)

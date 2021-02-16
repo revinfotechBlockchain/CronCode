@@ -19,6 +19,7 @@ const UserAddressAndStakeID = mongoose.model('UserAddressAndStakeID');
 const TransformTokens = mongoose.model('TransformTokens');
 const referalManager = mongoose.model('ReferalManager');
 const NexDatabase = mongoose.model('NexDatabase');
+const pairExchangeDetail = mongoose.model('pairExchangeDetail');
 
 //Modules exporter
 
@@ -92,6 +93,71 @@ cron.schedule('30 * * * * *', async () => {
     }).catch(err => {
         console.log(err);
     });
+});
+
+cron.schedule('22 * * * *', async () => {
+    try{
+    var output = []
+
+    for(i=0;i<17;i++){
+        let ouput = await axios.get('https://api.coingecko.com/api/v3/exchanges/uniswap/tickers?include_exchange_logo=true&page='+i+'&order=trust_score_asc')
+        console.log("oouutppuut", ouput.data)
+        await ouput.data.tickers.forEach(async ele=> {
+            await output.push(ele)
+        })
+    }
+    console.log("output size: ", output)
+    var endData = [];
+    var i = 0;
+    output.forEach(async elements => {
+        if(elements.base){
+            console.log("inside base")
+            await delay(Math.floor(Math.random() * 1000000));
+            await axios.get('https://api.coingecko.com/api/v3/coins/ethereum/contract/'+elements.base)
+                .then(async data=>{
+                console.log("new new")    
+                elements.symbol = (data.data.symbol).toUpperCase();
+                elements.icon =  data.data.image.small;
+                endData.push(elements)
+                i = i +1;
+                console.log(output.length,i)
+                    if (i == output.length){
+                        // console.log(endData)
+                        var obj =  { pairName : 'top20',data : {marketData : endData}, status : 'true'};
+                            await pairExchangeDetail.findOneAndUpdate('top20',obj,{new: true, upsert: true},(err, doc) => {
+                                if (!err){
+                                    console.log("New Entry Added in whitelist database") 
+                                    }
+                                else{
+                            console.log({error :'Error during Json insertion insertion : ' + err});
+                        }
+                    });
+                    }
+                    }).catch(async err=>{
+                        console.log("bataade", err.response.statusText);
+                        elements.icon = "https://s2.coinmarketcap.com/static/img/coins/200x200/1027.png";
+                        elements.symbol = (elements.coin_id).toUpperCase();
+                        endData.push(elements)
+                        i = i +1; 
+                        if (i == output.length){
+                            // console.log(endData)
+                            var obj =  { pairName : 'top20',data : {marketData : endData}, status : 'true'};
+                                await pairExchangeDetail.findOneAndUpdate('top20',obj,{new: true, upsert: true},(err, doc) => {
+                                    if (!err){
+                                        console.log("New Entry Added in whitelist database") 
+                                        }
+                                    else{
+                                console.log({error :'Error during Json insertion insertion : ' + err});
+                            }
+                        });
+                        }
+                    })  
+                } 
+    });
+    }
+    catch(err){
+        console.log(err.message)
+    }
 });
 
 

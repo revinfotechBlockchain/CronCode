@@ -12,6 +12,7 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 var db = require('../db/db.js');
 const cryptoRandomString = require('crypto-random-string');
+const delay = require('delay');
 
 //DataBase Models
 const BTCDatabase = mongoose.model('BTCDatabase');
